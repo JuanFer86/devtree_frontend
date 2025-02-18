@@ -1,9 +1,56 @@
 import { Link, Outlet } from "react-router-dom";
 import NavigationTabs from "./NavigationTabs";
 import { Toaster } from "sonner";
-import { UserTypes } from "../types/index";
+import { SocialNetwork, UserTypes } from "../types/index";
+import { useEffect, useState } from "react";
+import DevTreeLink from "./DevTreeLink";
+import { closestCenter, DndContext, DragEndEvent } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useQueryClient } from "@tanstack/react-query";
 
 function DevTree({ data }: { data: UserTypes }) {
+  const [enabledLinks, setEnabledLinks] = useState(
+    (JSON.parse(data.links) as SocialNetwork[]).filter((link) => link.enabled)
+  );
+
+  const queryclient = useQueryClient();
+
+  useEffect(() => {
+    setEnabledLinks(
+      (JSON.parse(data.links) as SocialNetwork[]).filter((link) => link.enabled)
+    );
+  }, [data]);
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+
+    if (over && over.id) {
+      const prevIndex = enabledLinks.findIndex((link) => link.id === active.id);
+      const newIndex = enabledLinks.findIndex((link) => link.id === over.id);
+
+      const order = arrayMove(enabledLinks, prevIndex, newIndex);
+
+      setEnabledLinks(order);
+
+      const disabledLinks: SocialNetwork[] = (
+        JSON.parse(data.links) as SocialNetwork[]
+      ).filter((link) => !link.enabled);
+
+      const links = [...order, ...disabledLinks];
+
+      queryclient.setQueryData(["user"], (prev: UserTypes) => {
+        return {
+          ...prev,
+          links: JSON.stringify(links),
+        };
+      });
+    }
+  };
+
   return (
     <>
       <header className="bg-slate-800 py-5">
@@ -27,7 +74,7 @@ function DevTree({ data }: { data: UserTypes }) {
           <div className="flex justify-end">
             <Link
               className="font-bold text-right text-slate-800 text-2xl"
-              to={""}
+              to={`/${data.handle}`}
               target="_blank"
               rel="noreferrer noopener"
             >
@@ -52,6 +99,22 @@ function DevTree({ data }: { data: UserTypes }) {
               <p className="text-center text-lg font-black text-white">
                 {data.description}
               </p>
+
+              <DndContext
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="mt-20 flex flex-col gap-5">
+                  <SortableContext
+                    items={enabledLinks}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {enabledLinks.map((link) => (
+                      <DevTreeLink key={link.name} link={link} />
+                    ))}
+                  </SortableContext>
+                </div>
+              </DndContext>
             </div>
           </div>
         </main>

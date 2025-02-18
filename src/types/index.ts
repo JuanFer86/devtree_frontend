@@ -5,7 +5,10 @@ export type UserTypes = {
   description: string;
   image: string;
   _id: string;
+  links: string;
 };
+
+export type UserHandle = Omit<UserTypes, "_id">;
 
 export type RegisterFormTypes = Pick<UserTypes, "name" | "email" | "handle"> & {
   password: string;
@@ -17,3 +20,12 @@ export type LoginFormTypes = Pick<UserTypes, "email"> & {
 };
 
 export type ProfileForm = Pick<UserTypes, "handle" | "description">;
+
+export type SocialNetwork = {
+  id: number;
+  name: string;
+  url: string;
+  enabled: boolean;
+};
+
+export type DevTreeLink = Pick<SocialNetwork, "name" | "url" | "enabled">;

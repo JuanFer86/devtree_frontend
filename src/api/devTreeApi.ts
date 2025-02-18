@@ -1,6 +1,6 @@
 import { isAxiosError } from "axios";
 import { api } from "../config/axios";
-import { ProfileForm, UserTypes } from "../types";
+import { UserHandle, UserTypes } from "../types";
 
 export const getUser = async () => {
   try {
@@ -15,7 +15,7 @@ export const getUser = async () => {
   }
 };
 
-export const updateProfile = async (formData: ProfileForm) => {
+export const updateProfile = async (formData: UserTypes) => {
   try {
     const { data } = await api.patch<string>(`user`, formData);
 
@@ -35,6 +35,19 @@ export const uploadImage = async (file: File) => {
       data: { image },
     }: { data: { image: string } } = await api.post(`user/image`, formData);
     return image;
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      // toast.warning(error.response?.data.error);
+      throw new Error(error.response?.data.error);
+    }
+  }
+};
+
+export const getUserByHandle = async (handle: string) => {
+  try {
+    console.log(handle);
+    const { data } = await api<UserHandle>(`/` + handle);
+    return data;
   } catch (error) {
     if (isAxiosError(error) && error.response) {
       // toast.warning(error.response?.data.error);

@@ -49,7 +49,10 @@ export default function ProfileView() {
   });
 
   const handleUserProfileForm = async (formData: ProfileForm) => {
-    await updateProfileMutation.mutate(formData);
+    const user: UserTypes = queryClient.getQueryData(["user"]) as UserTypes;
+    user.handle = formData.handle;
+    user.description = formData.description;
+    await updateProfileMutation.mutate(user);
   };
 
   const handleChangeImage = async (e: ChangeEvent<HTMLInputElement>) => {
