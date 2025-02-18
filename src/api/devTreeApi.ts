@@ -45,9 +45,20 @@ export const uploadImage = async (file: File) => {
 
 export const getUserByHandle = async (handle: string) => {
   try {
-    console.log(handle);
     const { data } = await api<UserHandle>(`/` + handle);
     return data;
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      // toast.warning(error.response?.data.error);
+      throw new Error(error.response?.data.error);
+    }
+  }
+};
+
+export const searchByHandle = async (handle: string) => {
+  try {
+    const { data } = await api.post<{ msg: string }>(`/search`, { handle });
+    return data.msg;
   } catch (error) {
     if (isAxiosError(error) && error.response) {
       // toast.warning(error.response?.data.error);
